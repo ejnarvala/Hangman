@@ -3,55 +3,82 @@ import thread
 import sys
 import random
 import re
-runnings_games = 0
+running_games = 0
 words = [] #word dictionary
 
 class Game(object):
 	def __init__(self, word):
 		self.word = list(word.lower()) #list to make easy to change, use .join(word) to make nice
 		self.wrong_letters = [] #len of this is #penalties
-		self.board = list(("_ "*len(word))[:-1]) #make board, remove trailing space
-		print self.board
+		self.board = list(("_"*len(word))) #make board, remove trailing space
+		self.game_won = False
+		self.game_over = False
 
 	def guess(self, letter):
-		if (not (re.match('^[A-Za-z]*$', letter))) or len(letter) > 1: #if not a letter
-			return 'Error! Please guess one letter.'
-		letter = letter.lower() #lowercase letter
-		if(letter in self.wrong_letters):
-			return 'Error! Letter A has been guessed before, please guess another letter.'
 		if(letter in self.word): #if letter is correct guess
 			indices = [i for i, a in enumerate(self.word) if a == letter]
 			for i in indices:
-				print self.word[i]
-			for i in indices:
-				self.board[2*i] = letter
-			if not ('_' in board): #if game is won
-				return 'You Win!'
-			print self.board
+				self.board[i] = letter
+			if not ('_' in self.board): #if game is won
+				self.game_won = True
+				self.game_over = True
 		else:
 			self.wrong_letters.append(letter)
-			if len(wrong_letters) == 6:
-				#TODO: handle destroying game or message to do so
-				print "GAME OVER"
+			if len(self.wrong_letters) == 6:
+				self.game_over = True
+		return self.game_over
 
+def send_ctrl_pkt(socket, game):
+	msg_flag = chr(0)
+	word_len = chr(len(game.word))
+	num_incorrect = chr(len(game.wrong_letters))
+	data = msg_flag + word_len + num_incorrect + ''.join(game.board) + ''.join(game.wrong_letters)
+	n = socket.send(data)
+	print n, "bytes sent"
 
+def send_msg_pkt(socket, data):
+	msg_flag = chr(len(data))
+	n = socket.send(msg_flag+data)
+	print n, "bytes sent"
 
-def on_new_client(clientsocket,addr):
-	global runnings_games
-	mygame = Game(random.choice(words))
-	if (runnings_games >= 3):
-		print 'SERVER OVERLOADED'
-		#TODO: server overload code
+def receive_msg_pkt(socket):
+	r = socket.recv(1)
+	if(len(r) == 0):
+		return ''
 	else:
-		runnings_games += 1
-	# while True:
-		# msg = clientsocket.recv()
-		#do some checks and if msg == someWeirdSignal: break:
-		# print addr, ' >> ', msg
-		# msg = raw_input('SERVER >> ') 
-		#Maybe some code to compute the last digit of PI, play game or anything else can go here and when you are done.
-		# clientsocket.send(msg) 
-	clientsocket.close()
+		msg_flag = ord(r)
+		return socket.recv(msg_flag)
+		
+
+def run_game(socket, gam):
+	while(not gam.game_over):
+		send_ctrl_pkt(socket, gam)
+		msg = receive_msg_pkt(socket)
+		if(msg == ''):
+			break
+		gam.guess(msg)
+	print 'Game has finished'
+
+
+
+def on_new_client(socket, addr):
+	global running_games
+	send_msg_pkt(socket,'Ready to start game? (y/n): ')
+	rec_msg = socket.recv(1) # y or n
+	if len(rec_msg) != 0:
+		rec_msg = ord(rec_msg)
+		if(rec_msg == 0):
+			if(running_games >= 3):
+				send_msg_pkt(socket, 'Server-Overloaded')
+			else:
+				g = Game(random.choice(words))
+				print 'New Game Started!'
+				running_games += 1
+				run_game(socket, g)
+				running_games -= 1 #whenever game is finnished running
+	print 'connection closed'
+	socket.close()
+
 
 def main():
 	global words #declare global words to modify
@@ -63,7 +90,7 @@ def main():
 		with open(sys.argv[2]) as f:
 			words = f.read().splitlines()[1:] #read lines into list
 	else: #argc == 2, use default word dictionary
-		words = ['jazz', 'buzz', 'hajj', 'fizz', 'jinx', 'huff', 'buff', 'jiff', 'junk', 'quiz']
+		words = ['jazz', 'buzz', 'hajj', 'fizz', 'jinx', 'huffs', 'buffs', 'jiffs', 'junks', 'hello', 'puzzle', 'buzzed', 'huzzah', 'fizzed', 'jumped']
 	host = 'localhost' # start on 127.0.0.1
 	port = int(sys.argv[1]) #port number from input
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #create new socket
@@ -73,13 +100,10 @@ def main():
 	s.listen(5) #listen for connections
 	print 'Listening for Connections...'
 	while True:
-		c, addr = s.accept()     # Establish connection with client.
+		client, addr = s.accept()     # Establish connection with client.
 		print 'Got connection from', addr
-		thread.start_new_thread(on_new_client,(c,addr)) #start new thread with client socket
+		thread.start_new_thread(on_new_client,(client,addr)) #start new thread with client socket
 	s.close()
-
-
-
 
 # Starts main
 if __name__ == '__main__':
