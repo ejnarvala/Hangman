@@ -4,7 +4,10 @@ import sys
 import random
 
 running_games = 0
-words = [] #word dictionary
+#default word list starts initialized
+words = ['jazz', 'buzz', 'mojo','zaps', 'jinx',
+	'pizza', 'buffs','jumpy', 'junks', 'hello',
+	'puzzle', 'buzzed', 'huzzah', 'clique', 'limpy']
 
 class Game(object):
 	def __init__(self, word):
@@ -29,6 +32,7 @@ class Game(object):
 
 
 def send_ctrl_pkt(socket, game):
+	#
 	msg_flag = chr(0)
 	word_len = chr(len(game.word))
 	num_incorrect = chr(len(game.wrong_letters))
@@ -100,10 +104,9 @@ def main():
 		print 'USAGE: python server.py <port number> [dictionary file name]'
 		sys.exit()
 	if(argc == 3): #if 3 args, read the third which will be text file name
+	#overwrite default word list
 		with open(sys.argv[2]) as f:
 			words = f.read().splitlines()[1:] #read lines into list
-	else: #argc == 2, use default word dictionary
-		words = ['jazz', 'buzz', 'hajj', 'fizz', 'jinx', 'huffs', 'buffs', 'jiffs', 'junks', 'hello', 'puzzle', 'buzzed', 'huzzah', 'fizzed', 'jumped']
 	host = 'localhost' # start on 127.0.0.1, 'localhost' is an optimization
 	port = int(sys.argv[1]) #port number from input
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #create new socket
