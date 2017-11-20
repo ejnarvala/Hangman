@@ -2,7 +2,7 @@ import socket
 import thread
 import sys
 import random
-import re
+
 running_games = 0
 words = [] #word dictionary
 
@@ -26,7 +26,6 @@ class Game(object):
 			self.wrong_letters.append(letter)
 			if len(self.wrong_letters) == 6:
 				self.game_over = True
-		return self.game_over
 
 def send_ctrl_pkt(socket, game):
 	msg_flag = chr(0)
@@ -34,12 +33,12 @@ def send_ctrl_pkt(socket, game):
 	num_incorrect = chr(len(game.wrong_letters))
 	data = msg_flag + word_len + num_incorrect + ''.join(game.board) + ''.join(game.wrong_letters)
 	n = socket.send(data)
-	print n, "bytes sent"
+	# print n, "bytes sent"
 
 def send_msg_pkt(socket, data):
 	msg_flag = chr(len(data))
 	n = socket.send(msg_flag+data)
-	print n, "bytes sent"
+	# print n, "bytes sent"
 
 def receive_msg_pkt(socket):
 	r = socket.recv(1)
@@ -48,36 +47,42 @@ def receive_msg_pkt(socket):
 	else:
 		msg_flag = ord(r)
 		return socket.recv(msg_flag)
-		
 
-def run_game(socket, gam):
-	while(not gam.game_over):
-		send_ctrl_pkt(socket, gam)
+
+def run_game(socket, g):
+	connected = True
+	while(not g.game_over):
+		send_ctrl_pkt(socket, g)
 		msg = receive_msg_pkt(socket)
-		if(msg == ''):
-			break
-		gam.guess(msg)
-	print 'Game has finished'
+		if(len(msg) == 0): #if disconnected
+			connected = False
+		g.guess(msg)
+	if connected:
+		if (g.game_won):
+			send_msg_pkt(socket, 'You Win!')
+		else:
+			send_msg_pkt(socket, 'You Lose!')
+		send_msg_pkt(socket, 'Game Over!')
 
 
 
 def on_new_client(socket, addr):
 	global running_games
 	send_msg_pkt(socket,'Ready to start game? (y/n): ')
-	rec_msg = socket.recv(1) # y or n
+	rec_msg = socket.recv(1)
 	if len(rec_msg) != 0:
 		rec_msg = ord(rec_msg)
-		if(rec_msg == 0):
+		if(rec_msg == 0): #if recieve packet with msg_flag = 0
 			if(running_games >= 3):
-				send_msg_pkt(socket, 'Server-Overloaded')
+				send_msg_pkt(socket, 'Server-Overloaded') #then close connection
 			else:
 				g = Game(random.choice(words))
 				print 'New Game Started!'
 				running_games += 1
 				run_game(socket, g)
 				running_games -= 1 #whenever game is finnished running
-	print 'connection closed'
 	socket.close()
+	print 'Connection Ended with', addr
 
 
 def main():
@@ -95,8 +100,7 @@ def main():
 	port = int(sys.argv[1]) #port number from input
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #create new socket
 	s.bind((host, port)) #bind host and port
-	print 'Server Started!'
-	print 'Host:', host, "| Port:", port
+	print 'Server Started! at ' + str(host) + ":" + str(port)
 	s.listen(5) #listen for connections
 	print 'Listening for Connections...'
 	while True:

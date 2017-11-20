@@ -1,34 +1,33 @@
 import socket
 import sys
 from server import send_msg_pkt
-
+import re
 board = []
 wrong_letters = []
 num_wrong = 0
 word_len = 0
-rec_buf = ''
-snd_buf = ''
 
 
 def receive(socket):
-	r = socket.recv(1)
-	if(len(r) == 0):
-		socket.close()
-		sys.exit()
-	msg_flag = ord(r)
-	if (msg_flag == 0):
-		word_len = ord(socket.recv(1))
-		print word_len
-		num_wrong = ord(socket.recv(1))
-		print num_wrong
+	global board, wrong_letters, num_wrong, word_len
+	r = socket.recv(1) #read first byte for msg_flag
+	if(len(r) == 0): #check if connection has been closed
+		return False
+	msg_flag = ord(r) #convert the msg_flag
+	while(msg_flag > 0): #read all messages from the client
+		server_msg = socket.recv(msg_flag)
+		print server_msg
+		msg_flag = socket.recv(1)
+		if(len(msg_flag) == 0):
+			return False
+		msg_flag = ord(msg_flag)
+	#continue when word_flag is 0 i.e. a control packet
+	word_len = ord(socket.recv(1))
+	num_wrong = ord(socket.recv(1))
+	if word_len > 0:
 		board = list(socket.recv(word_len))
-		print board
-		wrong_letters = list(socket.recv(num_wrong-1))
-		print wrong_letters
-	else:
-		rec_buf = socket.recv(msg_flag)
-		print rec_buf
-	print 'end of receive'
+	if num_wrong > 0:
+		wrong_letters = list(socket.recv(num_wrong))
 	return True
 
 def guess_valid(guess):
@@ -43,6 +42,7 @@ def guess_valid(guess):
 
 
 def main():
+	global board, wrong_letters, num_wrong, word_len
 	argc = len(sys.argv)
 	if (argc != 3):
 		print 'USAGE: python client.py <IP address> <port number>'
@@ -68,12 +68,13 @@ def main():
 
 	while(receive(s)):
 		print ' '.join(board)
-		print 'Incorrect Guesses: ' + ' '.join(wrong_letters)
+		print 'Incorrect Guesses: ' + ' '.join(wrong_letters).upper() + '\n'
 		guess = raw_input("Letter to Guess: ")
 		while(not guess_valid(guess)):
 			guess = raw_input("Letter to Guess: ")
 		send_msg_pkt(s, guess)
 
+	s.close()
 
 # Starts main
 if __name__ == "__main__":
