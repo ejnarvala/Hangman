@@ -7,7 +7,7 @@ wrong_letters = []
 num_wrong = 0
 word_len = 0
 
-
+#this return true or false if successful and updates game values and prints messages
 def receive(socket):
 	global board, wrong_letters, num_wrong, word_len
 	r = socket.recv(1) #read first byte for msg_flag
@@ -30,15 +30,27 @@ def receive(socket):
 		wrong_letters = list(socket.recv(num_wrong))
 	return True
 
+#this returns the message packet to use
+def receiveMsg(socket):
+	r = socket.recv(1)
+	if len(r) == 0:
+		return ''
+	else:
+		msg_flag = ord(r)
+		if msg_flag == 0:
+			return 0
+	return socket.recv(msg_flag)
+
 def guess_valid(guess):
+	global board
 	guess = guess.lower() #lowercase the guess
 	if ((not (re.match('^[a-z]*$', guess))) or len(guess) > 1):
 	#if the guess is not a latter between a and z or the guess is more than one letter
 		print 'Error! Please guess one letter.'
-		return False	
+		return False
 	if((guess in wrong_letters) or (guess in board)):
 	#if the guess has been guessed correctly or incorrectly
-		return 'Error! Letter '+ str(guess) + ' has been guessed before, please guess another letter.'
+		print 'Error! Letter '+ str(guess) + ' has been guessed before, please guess another letter.'
 		return False
 	return True #it is a valid guess
 
@@ -57,15 +69,27 @@ def main():
 		print 'There was an error with connecting!'
 		sys.exit()
 
-	#just for first message which asks for user input to start game
-	msg_bytes = ord(s.recv(1)) #read length of first message
-	rec_msg = s.recv(msg_bytes) #recieve the message
-	snd_msg = raw_input(rec_msg) #print message, ask user for input
-	while(snd_msg != 'y' and snd_msg != 'n'):
-		snd_msg = raw_input(rec_msg) #print message, ask user for input
-	if snd_msg == 'y':
-		send_msg_pkt(s, '') #send packet with msg_flag(0)
+	
+	#2Player?	
+	Tplay_msg = receiveMsg(s)
+	Tplay_snd = raw_input(Tplay_msg) #print message, ask user for input
+	while(Tplay_snd != 'y' and Tplay_snd != 'n'):
+		Tplay_snd = raw_input(Tplay_msg) #print message, ask user for input
+	if Tplay_snd == 'y':
+		send_msg_pkt(s, '2') #send packet with msg_flag(1), data='2'
 		print '' #print blank line
+	else:
+		send_msg_pkt(s, '') #send packet with msg_flag(0)
+	
+
+	#Ready to Start?
+	start_msg = receiveMsg(s)
+	start_snd = raw_input(start_msg)
+	while(start_snd != 'y' and start_snd != 'n'):
+		start_snd = raw_input(start_msg)
+	if start_snd == 'y':
+		send_msg_pkt(s, '')
+		print ''
 	else:
 		s.close()
 		sys.exit()
@@ -73,11 +97,10 @@ def main():
 	while(receive(s)):
 		print ' '.join(board) #prints board with spaces between the letters/underscores
 		print 'Incorrect Guesses: ' + ' '.join(wrong_letters) + '\n' #same as above for wrong guesses
-		guess = raw_input("Letter to Guess: ") #ask client to guess a letter
+		guess = raw_input("Letter to Guess: ").lower() #ask client to guess a letter
 		while(not guess_valid(guess)): #keep asking until guess is valid to send
 			guess = raw_input("Letter to Guess: ")
 		send_msg_pkt(s, guess) #send the guess
-
 	s.close()
 
 

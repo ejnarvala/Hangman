@@ -4,7 +4,9 @@ import sys
 import random
 
 running_games = 0
-#default word list starts initialized
+open_games = []
+players_waiting = []
+#default word list is
 words = ['jazz', 'buzz', 'mojo','zaps', 'jinx',
 	'pizza', 'buffs','jumpy', 'junks', 'hello',
 	'puzzle', 'buzzed', 'huzzah', 'clique', 'limpy']
@@ -25,14 +27,15 @@ class Game(object):
 			if not ('_' in self.board): #if game is won
 				self.game_won = True
 				self.game_over = True
+			return True
 		else:
 			self.wrong_letters.append(letter)
 			if len(self.wrong_letters) == 6:
 				self.game_over = True
+			return False
 
 
 def send_ctrl_pkt(socket, game):
-	#
 	msg_flag = chr(0)
 	word_len = chr(len(game.word))
 	num_incorrect = chr(len(game.wrong_letters))
@@ -75,26 +78,85 @@ def run_game(socket, g):
 			send_msg_pkt(socket, 'You Lose!')
 		send_msg_pkt(socket, 'Game Over!')
 
+def run_game_Tplayer(p1_socket, p2_socket, g):
+	connected = True
+	send_msg_pkt(p1_socket, 'Game Starting!')
+	send_msg_pkt(p2_socket, 'Game Starting!')
+	turn = False
+	while((not g.game_over) and connected):
+		if(turn):
+			socket1 = p1_socket
+			socket2 = p2_socket
+		else:
+			socket1 = p2_socket
+			socket2 = p1_socket
+		send_msg_pkt(socket2, 'Waiting on other player...')
+		send_msg_pkt(socket1, 'Your Turn!')
+		send_ctrl_pkt(socket1, g)
+		msg = receive_msg_pkt(socket1)
+		if(len(msg) == 0):
+			connected = False
+		else:
+			if(g.guess(msg)):
+				send_msg_pkt(socket1, 'Correct!')
+			else:
+				send_msg_pkt(socket1, 'Wrong!')
+		turn = not turn #switch players
+	if connected:
+		if (g.game_won):
+			send_msg_pkt(p1_socket, 'You Win!')
+			send_msg_pkt(p2_socket, 'You Win!')
+		else:
+			send_msg_pkt(p1_socket, 'You Lose!')
+			send_msg_pkt(p2_socket, 'You Lose!')
+		send_msg_pkt(p1_socket, 'Game Over!')
+		send_msg_pkt(p2_socket, 'Game Over!')
+	print 'Connection Ended with', p1_socket.getpeername()
+	print 'Connection Ended with', p2_socket.getpeername()
+	p2_socket.close()
+	p1_socket.close()
 
 
 def on_new_client(socket, addr):
-	global running_games
+	global running_games, open_games
 	#when new client connected, ask to start game
-	send_msg_pkt(socket,'Ready to start game? (y/n): ')
-	# rec_msg = socket.recv(1)
-	# if len(rec_msg) != 0:
+	send_msg_pkt(socket,'Two Player? (y/n): ')
 	start_msg = receive_msg_pkt(socket)
-	if start_msg == 0: #if it is a packet with msg_flag of 0
-		if(running_games >= 3): #if 3 or more games already running
-			send_msg_pkt(socket, 'Server-Overloaded') #then close connection
+	if int(start_msg) == 2: #if two player mode
+		send_msg_pkt(socket,'Ready to start game? (y/n): ')
+		start_msg = receive_msg_pkt(socket)
+		if start_msg == 0:
+			if(running_games >= 3): #if 3 or more games already running
+				send_msg_pkt(socket, 'Server-Overloaded') #then close connection
+				socket.close()
+				print 'Connection Ended with', addr
+			else:
+				if len(open_games) == 0: #if there are no open games, make new one
+					open_games.append(Game(random.choice(words)))
+					players_waiting.append(socket)
+					send_msg_pkt(socket, 'Waiting for other player!')
+				else:
+					running_games += 1 #only increment count once game has started
+					run_game_Tplayer(socket, players_waiting.pop(),open_games.pop())
+					running_games -= 1 #whenever game is finnished running
 		else:
-			#start a new game
-			g = Game(random.choice(words))
-			running_games += 1
-			run_game(socket, g) #run game g
-			running_games -= 1 #whenever game is finnished running
-	socket.close()
-	print 'Connection Ended with', addr
+			socket.close()
+			print 'Connection Ended with', addr
+
+	elif start_msg == 0: #if not 2 player mode, start 1 player mode
+		send_msg_pkt(socket,'Ready to start game? (y/n): ')
+		start_msg = receive_msg_pkt(socket)
+		if start_msg == 0: #if it is a packet with msg_flag of 0
+			if(running_games >= 3): #if 3 or more games already running
+				send_msg_pkt(socket, 'Server-Overloaded') #then close connection
+			else:
+				#start a new game
+				g = Game(random.choice(words))
+				running_games += 1
+				run_game(socket, g) #run game g
+				running_games -= 1 #whenever game is finnished running
+		socket.close()
+		print 'Connection Ended with', addr
 
 
 def main():
