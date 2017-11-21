@@ -38,7 +38,7 @@ def guess_valid(guess):
 		return False	
 	if((guess in wrong_letters) or (guess in board)):
 	#if the guess has been guessed correctly or incorrectly
-		return 'Error! Letter '+ str(guess) + ' has been guessed before, please guess another letter.'
+		print 'Error! Letter '+ str(guess) + ' has been guessed before, please guess another letter.'
 		return False
 	return True #it is a valid guess
 
