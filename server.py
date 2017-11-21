@@ -18,7 +18,6 @@ class Game(object):
 		self.board = list(("_"*len(word))) #make board, remove trailing space
 		self.game_won = False
 		self.game_over = False
-
 	def guess(self, letter):
 		if(letter in self.word): #if letter is correct guess
 			indices = [i for i, a in enumerate(self.word) if a == letter]
@@ -50,7 +49,7 @@ def send_msg_pkt(socket, data):
 
 def receive_msg_pkt(socket):
 	r = socket.recv(1) #read first byte (msg_flag)
-	if(len(r) == 0): #if nothing, client has disconnected
+	if(len(r) == 0): #if nothing, client has disconnected, noted by empty string
 		return ''
 	else:
 		#get msg_flag and read that amount from socket
@@ -161,6 +160,9 @@ def on_new_client(socket, addr):
 		print 'Connection Ended with', addr
 
 
+
+
+
 def main():
 	global words #declare global words to modify
 	argc = len(sys.argv) #number of arguments passed in
@@ -175,10 +177,10 @@ def main():
 	port = int(sys.argv[1]) #port number from input
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #create new socket
 	s.bind((host, port)) #bind host and port
-	print 'Server Started! at ' + str(host) + ":" + str(port)
+	print 'Server Started at ' + str(host) + ":" + str(port)
 	s.listen(5) #listen for connections
 	print 'Listening for Connections...'
-	while True:
+	while True: #listen forever
 		client, addr = s.accept()     # Establish connection with client.
 		print 'Connection Started with', addr
 		thread.start_new_thread(on_new_client,(client,addr)) #start new thread with client socket
