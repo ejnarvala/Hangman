@@ -32,7 +32,7 @@ def receive(socket):
 
 def guess_valid(guess):
 	guess = guess.lower() #lowercase the guess
-	if ((not (re.match('^[a-z]*$', guess))) or len(guess) > 1):
+	if ((not (re.match('^[a-z]*$', guess))) or len(guess) != 1):
 	#if the guess is not a latter between a and z or the guess is more than one letter
 		print 'Error! Please guess one letter.'
 		return False	
