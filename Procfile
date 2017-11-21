@@ -1,1 +1,1 @@
-web: python client.py $PORT
+web: python server.py $PORT
