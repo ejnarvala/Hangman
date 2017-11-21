@@ -3,8 +3,8 @@ import thread
 import sys
 import random
 
+open_games = 0
 running_games = 0
-open_games = []
 players_waiting = []
 #default word list is
 words = ['jazz', 'buzz', 'mojo','zaps', 'jinx',
@@ -72,7 +72,7 @@ def run_game(socket, g):
 		else:
 			g.guess(msg)
 	if connected: #if still connected when game ends/disconnects
-		#send game packets
+		#send game packets		
 		if (g.game_won):
 			send_msg_pkt(socket, 'You Win!')
 		else:
@@ -132,13 +132,14 @@ def on_new_client(socket, addr):
 				socket.close()
 				print 'Connection Ended with', addr
 			else:
-				if len(open_games) == 0: #if there are no open games, make new one
-					open_games.append(Game(random.choice(words)))
+				if open_games == 0: #if there are no open games, make new one
+					open_games += 1
 					players_waiting.append(socket)
 					send_msg_pkt(socket, 'Waiting for other player!')
 				else:
 					running_games += 1 #only increment count once game has started
-					run_game_Tplayer(socket, players_waiting.pop(),open_games.pop())
+					open_games -= 1
+					run_game_Tplayer(socket, players_waiting.pop(),Game(random.choice(words)))
 					running_games -= 1 #whenever game is finnished running
 		else:
 			socket.close()
