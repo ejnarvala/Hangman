@@ -23,7 +23,7 @@ def receive(socket):
 		msg_flag = ord(msg_flag) #convert next flag
 	#continue when word_flag is 0 i.e. a control packet
 	word_len = ord(socket.recv(1)) #read word length as specified in format
-	num_wrong = ord(socket.recv(1)) #read number of wrong guesses 
+	num_wrong = ord(socket.recv(1)) #read number of wrong guesses
 	if word_len > 0: #double check there is a word to read
 		board = list(socket.recv(word_len))
 	if num_wrong > 0: #double check there are wrong letters to read
@@ -35,7 +35,7 @@ def guess_valid(guess):
 	if ((not (re.match('^[a-z]*$', guess))) or len(guess) != 1):
 	#if the guess is not a latter between a and z or the guess is more than one letter
 		print 'Error! Please guess one letter.'
-		return False	
+		return False
 	if((guess in wrong_letters) or (guess in board)):
 	#if the guess has been guessed correctly or incorrectly
 		print 'Error! Letter '+ str(guess) + ' has been guessed before, please guess another letter.'
@@ -73,9 +73,9 @@ def main():
 	while(receive(s)):
 		print ' '.join(board) #prints board with spaces between the letters/underscores
 		print 'Incorrect Guesses: ' + ' '.join(wrong_letters) + '\n' #same as above for wrong guesses
-		guess = raw_input("Letter to Guess: ") #ask client to guess a letter
+		guess = raw_input("Letter to Guess: ").lower() #ask client to guess a letter
 		while(not guess_valid(guess)): #keep asking until guess is valid to send
-			guess = raw_input("Letter to Guess: ")
+			guess = raw_input("Letter to Guess: ").lower()
 		send_msg_pkt(s, guess) #send the guess
 
 	s.close()
