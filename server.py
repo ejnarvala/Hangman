@@ -65,13 +65,13 @@ def run_game(socket, g):
 	while((not g.game_over) and connected): #while game running
 		send_ctrl_pkt(socket, g) #send it current state of the game
 		msg = receive_msg_pkt(socket) #wait for response i.e the guess
-		print msg
+		#print msg
 		if(len(msg) == 0): #if disconnected
 			connected = False
 		else:
 			g.guess(msg)
 	if connected: #if still connected when game ends/disconnects
-		#send game packets		
+		#send game packets
 		if (g.game_won):
 			send_msg_pkt(socket, 'You Win!')
 		else:

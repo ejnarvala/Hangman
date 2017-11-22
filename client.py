@@ -23,7 +23,7 @@ def receive(socket):
 		msg_flag = ord(msg_flag) #convert next flag
 	#continue when word_flag is 0 i.e. a control packet
 	word_len = ord(socket.recv(1)) #read word length as specified in format
-	num_wrong = ord(socket.recv(1)) #read number of wrong guesses 
+	num_wrong = ord(socket.recv(1)) #read number of wrong guesses
 	if word_len > 0: #double check there is a word to read
 		board = list(socket.recv(word_len))
 	if num_wrong > 0: #double check there are wrong letters to read
@@ -69,8 +69,8 @@ def main():
 		print 'There was an error with connecting!'
 		sys.exit()
 
-	
-	#2Player?	
+
+	#2Player?
 	Tplay_msg = receiveMsg(s)
 	Tplay_snd = raw_input(Tplay_msg) #print message, ask user for input
 	while(Tplay_snd != 'y' and Tplay_snd != 'n'):
@@ -80,7 +80,7 @@ def main():
 		print '' #print blank line
 	else:
 		send_msg_pkt(s, '') #send packet with msg_flag(0)
-	
+
 
 	#Ready to Start?
 	start_msg = receiveMsg(s)
@@ -99,7 +99,7 @@ def main():
 		print 'Incorrect Guesses: ' + ' '.join(wrong_letters) + '\n' #same as above for wrong guesses
 		guess = raw_input("Letter to Guess: ").lower() #ask client to guess a letter
 		while(not guess_valid(guess)): #keep asking until guess is valid to send
-			guess = raw_input("Letter to Guess: ")
+			guess = raw_input("Letter to Guess: ").lower()
 		send_msg_pkt(s, guess) #send the guess
 	s.close()
 
