@@ -69,6 +69,7 @@ def run_game(socket, g):
 			g.guess(msg)
 	if connected: #if still connected when game ends/disconnects
 		#send game packets
+		send_ctrl_pkt(socket, g) #send it current state of the game
 		if (g.game_won):
 			send_msg_pkt(socket, 'You Win!')
 		else:
@@ -111,7 +112,7 @@ def main():
 	port = int(sys.argv[1]) #port number from input
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #create new socket
 	s.bind((host, port)) #bind host and port
-	print 'Server Started! at ' + str(host) + ":" + str(port)
+	print 'Server Started at ' + str(host) + ":" + str(port)
 	s.listen(5) #listen for connections
 	print 'Listening for Connections...'
 	while True:

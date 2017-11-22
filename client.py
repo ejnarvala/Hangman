@@ -28,6 +28,8 @@ def receive(socket):
 		board = list(socket.recv(word_len))
 	if num_wrong > 0: #double check there are wrong letters to read
 		wrong_letters = list(socket.recv(num_wrong))
+	print ' '.join(board) #prints board with spaces between the letters/underscores
+	print 'Incorrect Guesses: ' + ' '.join(wrong_letters) + '\n' #same as above for wrong guesses
 	return True
 
 def guess_valid(guess):
@@ -71,13 +73,11 @@ def main():
 		sys.exit()
 
 	while(receive(s)):
-		print ' '.join(board) #prints board with spaces between the letters/underscores
-		print 'Incorrect Guesses: ' + ' '.join(wrong_letters) + '\n' #same as above for wrong guesses
-		guess = raw_input("Letter to Guess: ").lower() #ask client to guess a letter
-		while(not guess_valid(guess)): #keep asking until guess is valid to send
-			guess = raw_input("Letter to Guess: ").lower()
-		send_msg_pkt(s, guess) #send the guess
-
+		if '_' in board and len(wrong_letters) < 6:
+			guess = raw_input("Letter to Guess: ").lower() #ask client to guess a letter
+			while(not guess_valid(guess)): #keep asking until guess is valid to send
+				guess = raw_input("Letter to Guess: ").lower()
+			send_msg_pkt(s, guess) #send the guess
 	s.close()
 
 
