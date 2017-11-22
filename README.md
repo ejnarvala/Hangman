@@ -135,40 +135,28 @@ Ready to start game? (y/n): y
 Waiting for other player!
 Game Starting!
 Your Turn!
-_ _ _ _ _ _
+_ _ _ _ _
 Incorrect Guesses:
 
 Letter to Guess: a
-Wrong!
-Waiting on other player...
-Your Turn!
-_ _ _ _ _ e
-Incorrect Guesses: a
-
-Letter to Guess: l
 Correct!
 Waiting on other player...
 Your Turn!
-p _ _ _ l e
-Incorrect Guesses: a
+_ _ _ _ a
+Incorrect Guesses: t
+
+Letter to Guess: z
+Correct!
+Waiting on other player...
+Your Turn!
+p _ z z a
+Incorrect Guesses: t
 
 Letter to Guess: i
-Wrong!
-Waiting on other player...
-Your Turn!
-p _ _ _ l e
-Incorrect Guesses: a i m
+Correct!
+p i z z a
+Incorrect Guesses: t
 
-Letter to Guess: o
-Wrong!
-Waiting on other player...
-Your Turn!
-p u _ _ l e
-Incorrect Guesses: a i m o
-
-Letter to Guess: r
-Wrong!
-Waiting on other player...
 You Win!
 Game Over!
 ~~~
@@ -180,50 +168,46 @@ python client.py 127.0.0.1 2017
 ~~~
 ###### Output
 ~~~
-Two Player? (y/n): y
-
+Two Player? (y/n): n
 Ready to start game? (y/n): y
 
-Game Starting!
-Waiting on other player...
-Your Turn!
-_ _ _ _ _ _
-Incorrect Guesses: a
+_ _ _ _ _
+Incorrect Guesses:
 
-Letter to Guess: 42
+Letter to Guess: a
+_ _ _ _ a
+Incorrect Guesses:
+
+Letter to Guess: bb
 Error! Please guess one letter.
-Letter to Guess:
-Error! Please guess one letter.
+Letter to Guess: b
+_ _ _ _ a
+Incorrect Guesses: b
+
+Letter to Guess: c
+_ _ _ _ a
+Incorrect Guesses: b c
+
+Letter to Guess: d
+_ _ _ _ a
+Incorrect Guesses: b c d
+
 Letter to Guess: e
-Correct!
-Waiting on other player...
-Your Turn!
-_ _ _ _ l e
-Incorrect Guesses: a
+_ _ _ _ a
+Incorrect Guesses: b c d e
 
 Letter to Guess: p
-Correct!
-Waiting on other player...
-Your Turn!
-p _ _ _ l e
-Incorrect Guesses: a i
+p _ _ _ a
+Incorrect Guesses: b c d e
 
-Letter to Guess: m
-Wrong!
-Waiting on other player...
-Your Turn!
-p _ _ _ l e
-Incorrect Guesses: a i m o
-
-Letter to Guess: u
-Correct!
-Waiting on other player...
-Your Turn!
-p u _ _ l e
-Incorrect Guesses: a i m o r
+Letter to Guess: i
+p i _ _ a
+Incorrect Guesses: b c d e
 
 Letter to Guess: z
-Correct!
+p i z z a
+Incorrect Guesses: b c d e
+
 You Win!
 Game Over!
 ~~~
