@@ -72,6 +72,7 @@ def run_game(socket, g):
 			g.guess(msg)
 	if connected: #if still connected when game ends/disconnects
 		#send game packets
+		send_ctrl_pkt(socket, g)
 		if (g.game_won):
 			send_msg_pkt(socket, 'You Win!')
 		else:
@@ -103,10 +104,14 @@ def run_game_Tplayer(p1_socket, p2_socket, g):
 				send_msg_pkt(socket1, 'Wrong!')
 		turn = not turn #switch players
 	if connected:
+		send_ctrl_pkt(socket1, g)
+		send_ctrl_pkt(socket2, g)
 		if (g.game_won):
 			send_msg_pkt(p1_socket, 'You Win!')
 			send_msg_pkt(p2_socket, 'You Win!')
 		else:
+			send_msg_pkt(p1_socket, 'The word was ' + ''.join(g.word))
+			send_msg_pkt(p2_socket, 'The word was ' + ''.join(g.word))
 			send_msg_pkt(p1_socket, 'You Lose!')
 			send_msg_pkt(p2_socket, 'You Lose!')
 		send_msg_pkt(p1_socket, 'Game Over!')
